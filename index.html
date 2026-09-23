@@ -793,11 +793,20 @@
     window.filtrarPorNroVenta = filtrarPorNroVenta;
     window.limpiarBusqueda = limpiarBusqueda;
 
-    function inicializar() {
+  function inicializar() {
       actualizarIndicadorConexion();
       cambiarEspacio();
       if (API_URL && API_URL.trim() !== "") {
         recargarDatos();
+
+        // 🔄 SINCRONIZACIÓN AUTOMÁTICA EN VIVO CADA 20 SEGUNDOS
+        setInterval(() => {
+          // Si no están operando en un modal ni buscando, actualiza en segundo plano
+          const hayModalAbierto = document.querySelector('.modal-backdrop[style*="flex"]');
+          if (!bloqueadoPorAccion && !hayModalAbierto) {
+            recargarDatos();
+          }
+        }, 20000); 
       }
     }
 
