@@ -104,7 +104,7 @@
           <label>Canal de Venta</label>
           <select id="npPlataforma">
             <option value="Mercado Libre">Mercado Libre</option>
-            <option value="Tiendanube">Tiendanube/option>
+            <option value="Tiendanube">Tiendanube</option>
           </select>
         </div>
         <div class="form-item">
@@ -549,17 +549,17 @@
         if (p.estado === 'Nuevo') {
           cNuevo++;
           if (espacio === 'DEPO' || espacio === 'ADMIN_GRAL') {
-            actionBtn = `<button class="btn btn-warning" onclick="abrirModalTomarDepo('${idSafe}')">⚡ Tomar Pedido</button>`;
+            actionBtn = `<button class="btn btn-warning" onclick="abrirModalTomarDepo('${idSafe}')"> Tomar Pedido</button>`;
           }
         } else if (p.estado === 'En Preparación') {
           cPrep++;
           if (espacio === 'DEPO' || espacio === 'ADMIN_GRAL') {
-            actionBtn = `<button class="btn btn-green" onclick="finalizarPreparacion('${idSafe}')">✔️ Listo para Facturar</button>`;
+            actionBtn = `<button class="btn btn-green" onclick="finalizarPreparacion('${idSafe}')"> Listo para Facturar</button>`;
           }
         } else if (p.estado === 'Para Facturar') {
           cTerm++;
           if (espacio === 'ADMIN' || espacio === 'ADMIN_GRAL') {
-            actionBtn = `<button class="btn btn-dark" onclick="abrirModalFacturar('${idSafe}')">🧾 Facturar y Archivar</button>`;
+            actionBtn = `<button class="btn btn-dark" onclick="abrirModalFacturar('${idSafe}')"> Facturar y Archivar</button>`;
           }
         }
 
@@ -661,7 +661,6 @@
         fechaIngreso: getFechaHoraActual(),
         cliente: clienteEl ? clienteEl.value.trim() : '',
         plataforma: platEl ? platEl.value : 'Mercado Libre',
-        tipoEnvio: envioEl ? envioEl.value : 'Mercado Envíos',
         estado: 'Nuevo',
         horaInicioPrep: '',
         armadorDepo: '',
