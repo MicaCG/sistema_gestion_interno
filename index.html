@@ -22,7 +22,7 @@
         <span class="dot dot-orange" id="connDot"></span>
         <span id="connText">Modo Local (Codespaces)</span>
       </div>
-      <button class="btn-config-api" onclick="abrirConfigAPI()">⚙️ Conexión Sheets</button>
+      <button class="btn-config-api" onclick="abrirConfigAPI()"> Conexión BD</button>
     </div>
   </div>
 
@@ -38,14 +38,14 @@
         <div class="space-selector">
           <label for="currentSpace">Sector:</label>
           <select id="currentSpace" onchange="cambiarEspacio()">
-            <option value="ADMIN_GRAL">👑 Admin General (Gaspi / Tomi)</option>
-            <option value="DEPO">🛠️ Depósito (Tío Mario / Rich)</option>
-            <option value="ADMIN">💼 Administrativo (Eva / Mica)</option>
+            <option value="ADMIN_GRAL"> Admin General (Gaspi / Tomi)</option>
+            <option value="DEPO"> Depósito (Tío Mario / Rich)</option>
+            <option value="ADMIN"> Administrativo (Eva / Mica)</option>
           </select>
         </div>
 
         <button class="btn btn-green" id="btnNuevoPedido" onclick="abrirModalNuevoPedido()">+ Cargar Pedido</button>
-        <button class="btn btn-dark" onclick="recargarDatos()">🔄 Sincronizar</button>
+        <button class="btn btn-dark" onclick="recargarDatos()"> Sincronizar</button>
       </div>
     </div>
   </header>
@@ -56,7 +56,7 @@
       <strong>Área activa:</strong> <span id="areaDesc">Admin General · Control integral</span>
     </div>
     <div class="status-search">
-      <span class="search-icon">🔍</span>
+      <span class="search-icon"></span>
       <input type="text" id="inputBuscarPedido" placeholder="Buscar por N° de venta..." oninput="filtrarPorNroVenta(this.value)">
       <button class="btn-clear-search" id="btnClearSearch" onclick="limpiarBusqueda()" title="Limpiar búsqueda">&times;</button>
     </div>
@@ -67,7 +67,7 @@
     <!-- Columna 1: Nuevo -->
     <div class="kanban-col col-nuevo">
       <div class="col-header">
-        <div class="col-title">📥 1. NUEVO INGRESO</div>
+        <div class="col-title"> 1. NUEVO INGRESO</div>
         <span class="col-counter" id="countNuevo">0</span>
       </div>
       <div class="cards-box" id="cardsNuevo"></div>
@@ -76,7 +76,7 @@
     <!-- Columna 2: En Preparación -->
     <div class="kanban-col col-prep">
       <div class="col-header">
-        <div class="col-title">⏳ 2. EN PREPARACIÓN</div>
+        <div class="col-title"> 2. EN PREPARACIÓN</div>
         <span class="col-counter" id="countPrep">0</span>
       </div>
       <div class="cards-box" id="cardsPrep"></div>
@@ -85,7 +85,7 @@
     <!-- Columna 3: Para Facturar -->
     <div class="kanban-col col-term">
       <div class="col-header">
-        <div class="col-title">🧾 3. PARA FACTURAR</div>
+        <div class="col-title"> 3. PARA FACTURAR</div>
         <span class="col-counter" id="countTerm">0</span>
       </div>
       <div class="cards-box" id="cardsTerm"></div>
@@ -104,7 +104,7 @@
           <label>Canal de Venta</label>
           <select id="npPlataforma">
             <option value="Mercado Libre">Mercado Libre</option>
-            <option value="Tienda Web">Tienda Web</option>
+            <option value="Tiendanube">Tiendanube/option>
           </select>
         </div>
         <div class="form-item">
@@ -112,25 +112,12 @@
           <input type="text" id="npIdVenta" placeholder="Ej: 20000155280..." required>
         </div>
         <div class="form-item">
-          <label>Nombre del Comprador</label>
-          <input type="text" id="npCliente" placeholder="Ej: Juan Pérez" required>
-        </div>
-        <div class="form-item">
-          <label>Método de Envío</label>
-          <select id="npTipoEnvio">
-            <option value="Envío Flex">Envío Flex (Rápido en el día)</option>
-            <option value="Mercado Envíos">Mercado Envíos (Colecta / Correo)</option>
-            <option value="Retiro en Depósito">Retiro en Depósito</option>
-            <option value="Expreso">Expreso / Encomienda</option>
-          </select>
-        </div>
-        <div class="form-item">
           <label>Observaciones (Opcional)</label>
           <input type="text" id="npObservaciones" placeholder="Ej: Entregar antes de las 15:00 hs">
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
           <button type="button" class="btn btn-dark" onclick="cerrarModal('modalNuevoPedido')">Cancelar</button>
-          <button type="submit" class="btn btn-green">Guardar en Tablero</button>
+          <button type="submit" class="btn btn-green">Guardar</button>
         </div>
       </form>
     </div>
@@ -203,9 +190,7 @@
       {
         idVenta: "20000155280701",
         fechaIngreso: "18-09-2026 (10:15 hs)",
-        cliente: "Santiago Galván",
         plataforma: "Mercado Libre",
-        tipoEnvio: "Envío Flex",
         estado: "Nuevo",
         horaInicioPrep: "",
         armadorDepo: "",
@@ -216,9 +201,7 @@
       {
         idVenta: "TND-90412",
         fechaIngreso: "18-09-2026 (09:40 hs)",
-        cliente: "Carla Benítez",
-        plataforma: "Tienda Web",
-        tipoEnvio: "Retiro en Depósito",
+        plataforma: "Tiendanube",
         estado: "En Preparación",
         horaInicioPrep: "18-09-2026 (10:30 hs)",
         armadorDepo: "Tío Mario",
@@ -229,9 +212,7 @@
       {
         idVenta: "20000155177303",
         fechaIngreso: "18-09-2026 (08:30 hs)",
-        cliente: "Nino Luzardo",
         plataforma: "Mercado Libre",
-        tipoEnvio: "Mercado Envíos",
         estado: "Para Facturar",
         horaInicioPrep: "18-09-2026 (09:00 hs)",
         armadorDepo: "Rich",
@@ -486,9 +467,7 @@
             const remotos = data.pedidos.map(p => ({
               idVenta: p.ID_Venta || p.ID || '',
               fechaIngreso: formatearFechaHora(p.Fecha_Ingreso || p.Fecha || ''),
-              cliente: p.Cliente || '',
               plataforma: p.Plataforma || 'Mercado Libre',
-              tipoEnvio: p.Tipo_Envio || p.TipoEnvio || '',
               estado: p.Estado || 'Nuevo',
               horaInicioPrep: formatearFechaHora(p.Hora_Inicio_Prep || ''),
               armadorDepo: p.Armador_Depo || '',
@@ -594,11 +573,11 @@
             ${p.tipoEnvio ? `<span class="tag-badge ${tagEnvio}">${p.tipoEnvio}</span>` : ''}
           </div>
           <div class="order-id"># ${p.idVenta}</div>
-          ${p.cliente ? `<div class="order-client">👤 ${p.cliente}</div>` : ''}
+          
           <div class="order-meta">
-            <div>🕒 Ingreso: <strong>${horaIngresoNorm}</strong></div>
-            ${p.armadorDepo ? `<div>👷 Armado por: <strong>${p.armadorDepo}</strong>${horaInicioSolo ? ` (Inicio: ${horaInicioSolo} hs)` : ''}</div>` : ''}
-            ${horaFinSolo ? `<div>✅ Terminado: <strong>${horaFinSolo} hs</strong></div>` : ''}
+            <div> Ingreso: <strong>${horaIngresoNorm}</strong></div>
+            ${p.armadorDepo ? `<div> Armado por: <strong>${p.armadorDepo}</strong>${horaInicioSolo ? ` (Inicio: ${horaInicioSolo} hs)` : ''}</div>` : ''}
+            ${horaFinSolo ? `<div> Terminado: <strong>${horaFinSolo} hs</strong></div>` : ''}
             ${p.observaciones ? `<div>💬 <em>${p.observaciones}</em></div>` : ''}
           </div>
           ${actionBtn ? `<div class="card-footer">${actionBtn}</div>` : ''}
