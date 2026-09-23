@@ -134,8 +134,8 @@
         Seleccioná quién prepara el pedido <strong id="depoModalIdVenta" style="color:black;"></strong>:
       </p>
       <div class="person-grid">
-        <button id="btnTomarMario" class="btn-select-person" onclick="confirmarInicioPreparacion('Tío Mario')">👷 TÍO MARIO</button>
-        <button id="btnTomarRich" class="btn-select-person" onclick="confirmarInicioPreparacion('Rich')">👷 RICH</button>
+        <button id="btnTomarMario" class="btn-select-person" onclick="confirmarInicioPreparacion('Tío Mario')"> TÍO MARIO</button>
+        <button id="btnTomarRich" class="btn-select-person" onclick="confirmarInicioPreparacion('Rich')"> RICH</button>
       </div>
     </div>
   </div>
@@ -151,8 +151,8 @@
         Seleccioná quién realizó la factura del pedido <strong id="adminModalIdVenta" style="color:black;"></strong>:
       </p>
       <div class="person-grid">
-        <button id="btnFacturarEva" class="btn-select-person" onclick="confirmarFacturacion('Eva')">💼 EVA</button>
-        <button id="btnFacturarMica" class="btn-select-person" onclick="confirmarFacturacion('Mica')">💼 MICA</button>
+        <button id="btnFacturarEva" class="btn-select-person" onclick="confirmarFacturacion('Eva')"> EVA</button>
+        <button id="btnFacturarMica" class="btn-select-person" onclick="confirmarFacturacion('Mica')"> MICA</button>
       </div>
     </div>
   </div>
@@ -184,43 +184,12 @@
     // CONTROLADOR FRONTEND - VERSIÓN MVP CON FORMATO UNIFICADO
     // =========================================================================
 
-    let API_URL = localStorage.getItem('to_pedidos_api_url') || "";
+    
 
-    const PEDIDOS_DEMO = [
-      {
-        idVenta: "20000155280701",
-        fechaIngreso: "18-09-2026 (10:15 hs)",
-        plataforma: "Mercado Libre",
-        estado: "Nuevo",
-        horaInicioPrep: "",
-        armadorDepo: "",
-        horaFinPrep: "",
-        facturadorAdmin: "",
-        observaciones: "Entregar urgente antes de las 15:00 hs"
-      },
-      {
-        idVenta: "TND-90412",
-        fechaIngreso: "18-09-2026 (09:40 hs)",
-        plataforma: "Tiendanube",
-        estado: "En Preparación",
-        horaInicioPrep: "18-09-2026 (10:30 hs)",
-        armadorDepo: "Tío Mario",
-        horaFinPrep: "",
-        facturadorAdmin: "",
-        observaciones: "Pasa a retirar por mostrador"
-      },
-      {
-        idVenta: "20000155177303",
-        fechaIngreso: "18-09-2026 (08:30 hs)",
-        plataforma: "Mercado Libre",
-        estado: "Para Facturar",
-        horaInicioPrep: "18-09-2026 (09:00 hs)",
-        armadorDepo: "Rich",
-        horaFinPrep: "18-09-2026 (09:25 hs)",
-        facturadorAdmin: "",
-        observaciones: "Listo para colecta Andreani"
-      }
-    ];
+  // URL predeterminada para que se conecte automáticamente en todas las PCs:
+const URL_DEFAULT = "https://script.google.com/macros/s/AKfycbxpSu9O-9aZpyK-GpPze2g4jatkQn2w97Y0otSOJHMiRo9Cwm3rkDNPe3UrleGPOD0Q/exec";
+
+let API_URL = localStorage.getItem('to_pedidos_api_url') || URL_DEFAULT;
 
     const ESTADO_RANK = {
       'Nuevo': 1,
@@ -353,7 +322,7 @@
       return Array.from(map.values());
     }
 
-    let pedidos = PEDIDOS_DEMO;
+    let pedidos = [];
     try {
       const raw = localStorage.getItem('to_pedidos_local');
       if (raw && raw !== "undefined" && raw !== "null") {
@@ -608,8 +577,8 @@
       
       const btnMario = document.getElementById('btnTomarMario');
       const btnRich = document.getElementById('btnTomarRich');
-      if (btnMario) { btnMario.innerHTML = '👷 TÍO MARIO'; btnMario.disabled = false; }
-      if (btnRich) { btnRich.innerHTML = '👷 RICH'; btnRich.disabled = false; }
+      if (btnMario) { btnMario.innerHTML = ' TÍO MARIO'; btnMario.disabled = false; }
+      if (btnRich) { btnRich.innerHTML = ' RICH'; btnRich.disabled = false; }
 
       const modal = document.getElementById('modalTomarDepo');
       if (modal) modal.style.display = 'flex';
@@ -622,8 +591,8 @@
 
       const btnEva = document.getElementById('btnFacturarEva');
       const btnMica = document.getElementById('btnFacturarMica');
-      if (btnEva) { btnEva.innerHTML = '💼 EVA'; btnEva.disabled = false; }
-      if (btnMica) { btnMica.innerHTML = '💼 MICA'; btnMica.disabled = false; }
+      if (btnEva) { btnEva.innerHTML = ' EVA'; btnEva.disabled = false; }
+      if (btnMica) { btnMica.innerHTML = ' MICA'; btnMica.disabled = false; }
 
       const modal = document.getElementById('modalFacturar');
       if (modal) modal.style.display = 'flex';
