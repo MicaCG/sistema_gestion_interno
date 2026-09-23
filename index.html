@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomas Oberti® Tattoo Supplies | Sistema de Gestión de Pedidos</title>
+  
+  <!-- Tipografía Montserrat Oficial de Tomas Oberti -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ANUNCIO SUPERIOR -->
+  <div class="top-announcement">
+    <span>TOMAS OBERTI® TATTOO SUPPLIES · <strong>SISTEMA DE CONTROL Y LOGÍSTICA</strong></span>
+    <div class="top-actions">
+      <div class="connection-status" id="connStatus">
+        <span class="dot dot-orange" id="connDot"></span>
+        <span id="connText">Modo Local (Codespaces)</span>
+      </div>
+      <button class="btn-config-api" onclick="abrirConfigAPI()">⚙️ Conexión Sheets</button>
+    </div>
+  </div>
+
+  <!-- ENCABEZADO PRINCIPAL DE LA MARCA -->
+  <header class="brand-header">
+    <div class="brand-container">
+      <div class="brand-logo-wrap">
+        <h1 class="brand-title">TOMAS OBERTI® <span>Tattoo Supplies</span></h1>
+        <div class="brand-subtitle">Control de Pedidos · Depósito & Administración</div>
+      </div>
+
+      <div class="brand-controls">
+        <div class="space-selector">
+          <label for="currentSpace">Sector:</label>
+          <select id="currentSpace" onchange="cambiarEspacio()">
+            <option value="ADMIN_GRAL">👑 Admin General (Gaspi / Tomi)</option>
+            <option value="DEPO">🛠️ Depósito (Tío Mario / Rich)</option>
+            <option value="ADMIN">💼 Administrativo (Eva / Mica)</option>
+          </select>
+        </div>
+
+        <button class="btn btn-green" id="btnNuevoPedido" onclick="abrirModalNuevoPedido()">+ Cargar Pedido</button>
+        <button class="btn btn-dark" onclick="recargarDatos()">🔄 Sincronizar</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BARRA DE ESTADO Y BUSCADOR POR NRO DE VENTA -->
+  <div class="status-bar">
+    <div class="status-left">
+      <strong>Área activa:</strong> <span id="areaDesc">Admin General · Control integral</span>
+    </div>
+    <div class="status-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="inputBuscarPedido" placeholder="Buscar por N° de venta..." oninput="filtrarPorNroVenta(this.value)">
+      <button class="btn-clear-search" id="btnClearSearch" onclick="limpiarBusqueda()" title="Limpiar búsqueda">&times;</button>
+    </div>
+  </div>
+
+  <!-- TABLERO KANBAN DE 3 COLUMNAS -->
+  <main class="board-wrapper">
+    <!-- Columna 1: Nuevo -->
+    <div class="kanban-col col-nuevo">
+      <div class="col-header">
+        <div class="col-title">📥 1. NUEVO INGRESO</div>
+        <span class="col-counter" id="countNuevo">0</span>
+      </div>
+      <div class="cards-box" id="cardsNuevo"></div>
+    </div>
+
+    <!-- Columna 2: En Preparación -->
+    <div class="kanban-col col-prep">
+      <div class="col-header">
+        <div class="col-title">⏳ 2. EN PREPARACIÓN</div>
+        <span class="col-counter" id="countPrep">0</span>
+      </div>
+      <div class="cards-box" id="cardsPrep"></div>
+    </div>
+
+    <!-- Columna 3: Para Facturar -->
+    <div class="kanban-col col-term">
+      <div class="col-header">
+        <div class="col-title">🧾 3. PARA FACTURAR</div>
+        <span class="col-counter" id="countTerm">0</span>
+      </div>
+      <div class="cards-box" id="cardsTerm"></div>
+    </div>
+  </main>
+
+  <!-- MODAL: CARGAR PEDIDO -->
+  <div class="modal-backdrop" id="modalNuevoPedido">
+    <div class="modal-box">
+      <div class="modal-title-row">
+        <h3>Alta de Pedido</h3>
+        <button class="btn-close-modal" onclick="cerrarModal('modalNuevoPedido')">&times;</button>
+      </div>
+      <form onsubmit="guardarNuevoPedido(event)">
+        <div class="form-item">
+          <label>Canal de Venta</label>
+          <select id="npPlataforma">
+            <option value="Mercado Libre">Mercado Libre</option>
+            <option value="Tienda Web">Tienda Web</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>N° de Operación / Compra</label>
+          <input type="text" id="npIdVenta" placeholder="Ej: 20000155280..." required>
+        </div>
+        <div class="form-item">
+          <label>Nombre del Comprador</label>
+          <input type="text" id="npCliente" placeholder="Ej: Juan Pérez" required>
+        </div>
+        <div class="form-item">
+          <label>Método de Envío</label>
+          <select id="npTipoEnvio">
+            <option value="Envío Flex">Envío Flex (Rápido en el día)</option>
+            <option value="Mercado Envíos">Mercado Envíos (Colecta / Correo)</option>
+            <option value="Retiro en Depósito">Retiro en Depósito</option>
+            <option value="Expreso">Expreso / Encomienda</option>
+          </select>
+        </div>
+        <div class="form-item">
+          <label>Observaciones (Opcional)</label>
+          <input type="text" id="npObservaciones" placeholder="Ej: Entregar antes de las 15:00 hs">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+          <button type="button" class="btn btn-dark" onclick="cerrarModal('modalNuevoPedido')">Cancelar</button>
+          <button type="submit" class="btn btn-green">Guardar en Tablero</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ARMAR EN DEPÓSITO -->
+  <div class="modal-backdrop" id="modalTomarDepo">
+    <div class="modal-box">
+      <div class="modal-title-row">
+        <h3>Asignar Preparación</h3>
+        <button class="btn-close-modal" onclick="cerrarModal('modalTomarDepo')">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: #555; margin-bottom: 12px;">
+        Seleccioná quién prepara el pedido <strong id="depoModalIdVenta" style="color:black;"></strong>:
+      </p>
+      <div class="person-grid">
+        <button id="btnTomarMario" class="btn-select-person" onclick="confirmarInicioPreparacion('Tío Mario')">👷 TÍO MARIO</button>
+        <button id="btnTomarRich" class="btn-select-person" onclick="confirmarInicioPreparacion('Rich')">👷 RICH</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: FACTURACIÓN EN ADMINISTRACIÓN -->
+  <div class="modal-backdrop" id="modalFacturar">
+    <div class="modal-box">
+      <div class="modal-title-row">
+        <h3>Facturación & Cierre</h3>
+        <button class="btn-close-modal" onclick="cerrarModal('modalFacturar')">&times;</button>
+      </div>
+      <p style="font-size: 0.85rem; color: #555; margin-bottom: 12px;">
+        Seleccioná quién realizó la factura del pedido <strong id="adminModalIdVenta" style="color:black;"></strong>:
+      </p>
+      <div class="person-grid">
+        <button id="btnFacturarEva" class="btn-select-person" onclick="confirmarFacturacion('Eva')">💼 EVA</button>
+        <button id="btnFacturarMica" class="btn-select-person" onclick="confirmarFacturacion('Mica')">💼 MICA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIGURAR CONEXIÓN CON GOOGLE SHEETS -->
+  <div class="modal-backdrop" id="modalConfigApi">
+    <div class="modal-box">
+      <div class="modal-title-row">
+        <h3>Configurar Conexión Sheets</h3>
+        <button class="btn-close-modal" onclick="cerrarModal('modalConfigApi')">&times;</button>
+      </div>
+      <div class="form-item">
+        <label>URL de la Web App de Apps Script (/exec):</label>
+        <input type="url" id="inputApiUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <small style="color: #666; display:block; margin-top: 4px; font-size: 0.72rem;">
+          Debe terminar en <strong>/exec</strong> y tener acceso configurado para "Cualquier usuario".
+        </small>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+        <button type="button" class="btn btn-dark" onclick="cerrarModal('modalConfigApi')">Cerrar</button>
+        <button type="button" class="btn btn-green" onclick="guardarConfigAPI()">Guardar y Conectar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // GESTIÓN DE PEDIDOS - TOMAS OBERTI® TATTOO SUPPLIES
+    // CONTROLADOR FRONTEND - VERSIÓN MVP CON FORMATO UNIFICADO
+    // =========================================================================
+
+    let API_URL = localStorage.getItem('to_pedidos_api_url') || "";
+
+    const PEDIDOS_DEMO = [
+      {
+        idVenta: "20000155280701",
+        fechaIngreso: "18-09-2026 (10:15 hs)",
+        cliente: "Santiago Galván",
+        plataforma: "Mercado Libre",
+        tipoEnvio: "Envío Flex",
+        estado: "Nuevo",
+        horaInicioPrep: "",
+        armadorDepo: "",
+        horaFinPrep: "",
+        facturadorAdmin: "",
+        observaciones: "Entregar urgente antes de las 15:00 hs"
+      },
+      {
+        idVenta: "TND-90412",
+        fechaIngreso: "18-09-2026 (09:40 hs)",
+        cliente: "Carla Benítez",
+        plataforma: "Tienda Web",
+        tipoEnvio: "Retiro en Depósito",
+        estado: "En Preparación",
+        horaInicioPrep: "18-09-2026 (10:30 hs)",
+        armadorDepo: "Tío Mario",
+        horaFinPrep: "",
+        facturadorAdmin: "",
+        observaciones: "Pasa a retirar por mostrador"
+      },
+      {
+        idVenta: "20000155177303",
+        fechaIngreso: "18-09-2026 (08:30 hs)",
+        cliente: "Nino Luzardo",
+        plataforma: "Mercado Libre",
+        tipoEnvio: "Mercado Envíos",
+        estado: "Para Facturar",
+        horaInicioPrep: "18-09-2026 (09:00 hs)",
+        armadorDepo: "Rich",
+        horaFinPrep: "18-09-2026 (09:25 hs)",
+        facturadorAdmin: "",
+        observaciones: "Listo para colecta Andreani"
+      }
+    ];
+
+    const ESTADO_RANK = {
+      'Nuevo': 1,
+      'En Preparación': 2,
+      'Para Facturar': 3,
+      'Facturado': 4,
+      'Archivado': 4
+    };
+
+    function getFechaHoraActual() {
+      const d = new Date();
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${dd}-${mm}-${yyyy} (${hh}:${min} hs)`;
+    }
+
+    function limpiarSoloHora(str) {
+      if (!str) return '';
+      const s = String(str);
+      const colonIndex = s.indexOf(':');
+      if (colonIndex === -1) return '';
+      const hora = s.slice(Math.max(0, colonIndex - 2), colonIndex).replace(/\D/g, '').padStart(2, '0');
+      const min = s.slice(colonIndex + 1, colonIndex + 3).replace(/\D/g, '').padStart(2, '0');
+      return hora + ':' + min;
+    }
+
+    function formatearFechaHora(str) {
+      if (!str) return '';
+      str = String(str).trim();
+      
+      const mCompleto = str.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})\s*(?:\(?(\d{1,2}):(\d{2})\s*(?:hs)?\)?)?/i);
+      if (mCompleto && mCompleto[3] !== '1899' && mCompleto[3] !== '1900') {
+        const dd = String(mCompleto[1]).padStart(2, '0');
+        const mm = String(mCompleto[2]).padStart(2, '0');
+        const yyyy = mCompleto[3].length === 2 ? '20' + mCompleto[3] : mCompleto[3];
+        const hh = mCompleto[4] ? String(mCompleto[4]).padStart(2, '0') : '00';
+        const min = mCompleto[5] ? String(mCompleto[5]).padStart(2, '0') : '00';
+        return `${dd}-${mm}-${yyyy} (${hh}:${min} hs)`;
+      }
+      
+      const mHora = str.match(/(\d{1,2}):(\d{2})/);
+      if (mHora) {
+        const d = new Date();
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        const hh = String(mHora[1]).padStart(2, '0');
+        const min = String(mHora[2]).padStart(2, '0');
+        return `${dd}-${mm}-${yyyy} (${hh}:${min} hs)`;
+      }
+      
+      return str;
+    }
+
+    const archivadosRecientes = new Map();
+
+    function registrarArchivadoReciente(idVenta) {
+      archivadosRecientes.set(String(idVenta).trim(), Date.now());
+    }
+
+    function estaArchivadoReciente(idVenta) {
+      const key = String(idVenta).trim();
+      if (!archivadosRecientes.has(key)) return false;
+      const ts = archivadosRecientes.get(key);
+      if (Date.now() - ts < 90000) {
+        return true;
+      }
+      archivadosRecientes.delete(key);
+      return false;
+    }
+
+    function fusionarConRemoto(locales, remotos) {
+      const map = new Map();
+
+      locales.forEach(p => {
+        if (p && p.idVenta) {
+          const id = String(p.idVenta).trim();
+          if (!estaArchivadoReciente(id)) {
+            map.set(id, { ...p });
+          }
+        }
+      });
+
+      remotos.forEach(r => {
+        if (!r || !r.idVenta) return;
+        const id = String(r.idVenta).trim();
+
+        if (estaArchivadoReciente(id)) {
+          map.delete(id);
+          return;
+        }
+
+        if (!map.has(id)) {
+          map.set(id, r);
+        } else {
+          const local = map.get(id);
+          const rankLocal = ESTADO_RANK[local.estado] || 1;
+          const rankRemoto = ESTADO_RANK[r.estado] || 1;
+
+          if (rankRemoto >= rankLocal) {
+            map.set(id, { ...local, ...r });
+          }
+        }
+      });
+
+      return Array.from(map.values());
+    }
+
+    function desduplicarPedidos(lista) {
+      if (!Array.isArray(lista)) return [];
+      const map = new Map();
+      lista.forEach(p => {
+        if (p && p.idVenta) {
+          const key = String(p.idVenta).trim();
+          if (map.has(key)) {
+            const existente = map.get(key);
+            const rankExistente = ESTADO_RANK[existente.estado] || 1;
+            const rankNuevo = ESTADO_RANK[p.estado] || 1;
+            if (rankNuevo >= rankExistente) {
+              map.set(key, p);
+            }
+          } else {
+            map.set(key, p);
+          }
+        }
+      });
+      return Array.from(map.values());
+    }
+
+    let pedidos = PEDIDOS_DEMO;
+    try {
+      const raw = localStorage.getItem('to_pedidos_local');
+      if (raw && raw !== "undefined" && raw !== "null") {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          pedidos = desduplicarPedidos(parsed.map(p => ({
+            ...p,
+            fechaIngreso: formatearFechaHora(p.fechaIngreso),
+            horaInicioPrep: formatearFechaHora(p.horaInicioPrep),
+            horaFinPrep: formatearFechaHora(p.horaFinPrep)
+          })));
+        }
+      }
+    } catch (e) {
+      pedidos = PEDIDOS_DEMO;
+    }
+
+    let pedidoSeleccionadoId = null;
+    let bloqueadoPorAccion = false;
+
+    let filtroBusqueda = "";
+
+    function filtrarPorNroVenta(valor) {
+      filtroBusqueda = (valor || "").trim().toLowerCase();
+      const btnClear = document.getElementById('btnClearSearch');
+      if (btnClear) {
+        btnClear.style.display = filtroBusqueda ? 'inline-block' : 'none';
+      }
+      renderizarTablero();
+    }
+
+    function limpiarBusqueda() {
+      const input = document.getElementById('inputBuscarPedido');
+      if (input) input.value = '';
+      filtroBusqueda = "";
+      const btnClear = document.getElementById('btnClearSearch');
+      if (btnClear) btnClear.style.display = 'none';
+      renderizarTablero();
+    }
+
+    function actualizarIndicadorConexion() {
+      const dot = document.getElementById('connDot');
+      const text = document.getElementById('connText');
+      if (API_URL && API_URL.trim() !== "") {
+        if (dot) dot.className = "dot dot-green";
+        if (text) text.innerHTML = "Conectado a <strong>Google Sheets</strong>";
+      } else {
+        if (dot) dot.className = "dot dot-orange";
+        if (text) text.innerHTML = "Modo Local <strong>(Codespaces)</strong>";
+      }
+    }
+
+    function abrirConfigAPI() {
+      const input = document.getElementById('inputApiUrl');
+      if (input) input.value = API_URL;
+      const modal = document.getElementById('modalConfigApi');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function guardarConfigAPI() {
+      const input = document.getElementById('inputApiUrl');
+      if (input) {
+        API_URL = input.value.trim();
+        localStorage.setItem('to_pedidos_api_url', API_URL);
+      }
+      cerrarModal('modalConfigApi');
+      actualizarIndicadorConexion();
+      recargarDatos();
+    }
+
+    function guardarStorageLocal() {
+      try {
+        pedidos = desduplicarPedidos(pedidos);
+        localStorage.setItem('to_pedidos_local', JSON.stringify(pedidos));
+      } catch (e) {
+        console.error("Error guardando en localStorage:", e);
+      }
+    }
+
+    function enviarAccionASheets(payload, callback) {
+      if (!API_URL || API_URL.trim() === "") {
+        if (callback) callback();
+        return;
+      }
+
+      fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        setTimeout(recargarDatos, 2000);
+        if (callback) callback();
+      })
+      .catch(err => {
+        console.error("[Sheets] Error en envío:", err);
+        if (callback) callback();
+      });
+    }
+
+    function recargarDatos() {
+      if (API_URL && API_URL.trim() !== "") {
+        fetch(API_URL + '?action=getData', {
+          method: 'GET',
+          redirect: 'follow'
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.pedidos && Array.isArray(data.pedidos)) {
+            const remotos = data.pedidos.map(p => ({
+              idVenta: p.ID_Venta || p.ID || '',
+              fechaIngreso: formatearFechaHora(p.Fecha_Ingreso || p.Fecha || ''),
+              cliente: p.Cliente || '',
+              plataforma: p.Plataforma || 'Mercado Libre',
+              tipoEnvio: p.Tipo_Envio || p.TipoEnvio || '',
+              estado: p.Estado || 'Nuevo',
+              horaInicioPrep: formatearFechaHora(p.Hora_Inicio_Prep || ''),
+              armadorDepo: p.Armador_Depo || '',
+              horaFinPrep: formatearFechaHora(p.Hora_Fin_Prep || ''),
+              facturadorAdmin: p.Facturador_Admin || '',
+              observaciones: p.Observaciones || ''
+            }));
+            
+            pedidos = fusionarConRemoto(pedidos, remotos);
+            guardarStorageLocal();
+            renderizarTablero();
+          }
+        })
+        .catch(err => {
+          console.warn("Aviso al refrescar Sheets:", err);
+          renderizarTablero();
+        });
+      } else {
+        pedidos = desduplicarPedidos(pedidos);
+        renderizarTablero();
+      }
+    }
+
+    function cambiarEspacio() {
+      const select = document.getElementById('currentSpace');
+      const espacio = select ? select.value : 'ADMIN_GRAL';
+      const desc = document.getElementById('areaDesc');
+      const btnNuevo = document.getElementById('btnNuevoPedido');
+
+      if (espacio === 'DEPO') {
+        if (desc) desc.textContent = "Depósito (Tío Mario / Rich) · Tomar pedidos y completar armado";
+        if (btnNuevo) btnNuevo.style.display = "none";
+      } else if (espacio === 'ADMIN') {
+        if (desc) desc.textContent = "Administración (Eva / Mica) · Carga de compras y facturación";
+        if (btnNuevo) btnNuevo.style.display = "inline-flex";
+      } else {
+        if (desc) desc.textContent = "Admin General (Gaspi / Tomi) · Control global del flujo";
+        if (btnNuevo) btnNuevo.style.display = "inline-flex";
+      }
+      renderizarTablero();
+    }
+
+    function renderizarTablero() {
+      const colNuevo = document.getElementById('cardsNuevo');
+      const colPrep = document.getElementById('cardsPrep');
+      const colTerm = document.getElementById('cardsTerm');
+
+      if (!colNuevo || !colPrep || !colTerm) return;
+
+      colNuevo.innerHTML = ''; 
+      colPrep.innerHTML = ''; 
+      colTerm.innerHTML = '';
+      
+      let cNuevo = 0, cPrep = 0, cTerm = 0;
+      const select = document.getElementById('currentSpace');
+      const espacio = select ? select.value : 'ADMIN_GRAL';
+
+      pedidos = desduplicarPedidos(pedidos);
+
+      const pedidosAFiltrar = pedidos.filter(p => {
+        if (estaArchivadoReciente(p.idVenta)) return false;
+        if (filtroBusqueda) {
+          const idStr = String(p.idVenta || '').toLowerCase();
+          return idStr.includes(filtroBusqueda);
+        }
+        return true;
+      });
+
+      pedidosAFiltrar.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'order-card';
+
+        const tagPlat = (p.plataforma || '').toLowerCase().includes('tienda') ? 'tag-tienda' : 'tag-ml';
+        const tagEnvio = (p.tipoEnvio || '').toLowerCase().includes('flex') ? 'tag-flex' : 'tag-me';
+
+        let actionBtn = '';
+        const idSafe = String(p.idVenta || '').replace(/'/g, "\\'");
+
+        if (p.estado === 'Nuevo') {
+          cNuevo++;
+          if (espacio === 'DEPO' || espacio === 'ADMIN_GRAL') {
+            actionBtn = `<button class="btn btn-warning" onclick="abrirModalTomarDepo('${idSafe}')">⚡ Tomar Pedido</button>`;
+          }
+        } else if (p.estado === 'En Preparación') {
+          cPrep++;
+          if (espacio === 'DEPO' || espacio === 'ADMIN_GRAL') {
+            actionBtn = `<button class="btn btn-green" onclick="finalizarPreparacion('${idSafe}')">✔️ Listo para Facturar</button>`;
+          }
+        } else if (p.estado === 'Para Facturar') {
+          cTerm++;
+          if (espacio === 'ADMIN' || espacio === 'ADMIN_GRAL') {
+            actionBtn = `<button class="btn btn-dark" onclick="abrirModalFacturar('${idSafe}')">🧾 Facturar y Archivar</button>`;
+          }
+        }
+
+        const horaIngresoNorm = formatearFechaHora(p.fechaIngreso);
+        const horaInicioSolo = limpiarSoloHora(p.horaInicioPrep);
+        const horaFinSolo = limpiarSoloHora(p.horaFinPrep);
+
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="tag-badge ${tagPlat}">${p.plataforma || 'Venta'}</span>
+            ${p.tipoEnvio ? `<span class="tag-badge ${tagEnvio}">${p.tipoEnvio}</span>` : ''}
+          </div>
+          <div class="order-id"># ${p.idVenta}</div>
+          ${p.cliente ? `<div class="order-client">👤 ${p.cliente}</div>` : ''}
+          <div class="order-meta">
+            <div>🕒 Ingreso: <strong>${horaIngresoNorm}</strong></div>
+            ${p.armadorDepo ? `<div>👷 Armado por: <strong>${p.armadorDepo}</strong>${horaInicioSolo ? ` (Inicio: ${horaInicioSolo} hs)` : ''}</div>` : ''}
+            ${horaFinSolo ? `<div>✅ Terminado: <strong>${horaFinSolo} hs</strong></div>` : ''}
+            ${p.observaciones ? `<div>💬 <em>${p.observaciones}</em></div>` : ''}
+          </div>
+          ${actionBtn ? `<div class="card-footer">${actionBtn}</div>` : ''}
+        `;
+
+        if (p.estado === 'Nuevo') colNuevo.appendChild(card);
+        else if (p.estado === 'En Preparación') colPrep.appendChild(card);
+        else if (p.estado === 'Para Facturar') colTerm.appendChild(card);
+      });
+
+      const countNuevo = document.getElementById('countNuevo');
+      const countPrep = document.getElementById('countPrep');
+      const countTerm = document.getElementById('countTerm');
+      if (countNuevo) countNuevo.textContent = cNuevo;
+      if (countPrep) countPrep.textContent = cPrep;
+      if (countTerm) countTerm.textContent = cTerm;
+    }
+
+    function abrirModalNuevoPedido() {
+      const modal = document.getElementById('modalNuevoPedido');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function abrirModalTomarDepo(idVenta) {
+      pedidoSeleccionadoId = idVenta;
+      const label = document.getElementById('depoModalIdVenta');
+      if (label) label.textContent = '#' + idVenta;
+      
+      const btnMario = document.getElementById('btnTomarMario');
+      const btnRich = document.getElementById('btnTomarRich');
+      if (btnMario) { btnMario.innerHTML = '👷 TÍO MARIO'; btnMario.disabled = false; }
+      if (btnRich) { btnRich.innerHTML = '👷 RICH'; btnRich.disabled = false; }
+
+      const modal = document.getElementById('modalTomarDepo');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function abrirModalFacturar(idVenta) {
+      pedidoSeleccionadoId = idVenta;
+      const label = document.getElementById('adminModalIdVenta');
+      if (label) label.textContent = '#' + idVenta;
+
+      const btnEva = document.getElementById('btnFacturarEva');
+      const btnMica = document.getElementById('btnFacturarMica');
+      if (btnEva) { btnEva.innerHTML = '💼 EVA'; btnEva.disabled = false; }
+      if (btnMica) { btnMica.innerHTML = '💼 MICA'; btnMica.disabled = false; }
+
+      const modal = document.getElementById('modalFacturar');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function cerrarModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.style.display = 'none';
+      pedidoSeleccionadoId = null;
+      bloqueadoPorAccion = false;
+    }
+
+    function guardarNuevoPedido(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (bloqueadoPorAccion) return;
+
+      const idInput = document.getElementById('npIdVenta');
+      const idNuevo = idInput ? idInput.value.trim() : '';
+      if (!idNuevo) return;
+
+      const yaExiste = pedidos.some(p => String(p.idVenta).trim() === idNuevo);
+      if (yaExiste) {
+        alert('El pedido #' + idNuevo + ' ya se encuentra en el tablero.');
+        return;
+      }
+
+      bloqueadoPorAccion = true;
+      const clienteEl = document.getElementById('npCliente');
+      const platEl = document.getElementById('npPlataforma');
+      const envioEl = document.getElementById('npTipoEnvio');
+      const obsEl = document.getElementById('npObservaciones');
+
+      const nuevo = {
+        idVenta: idNuevo,
+        fechaIngreso: getFechaHoraActual(),
+        cliente: clienteEl ? clienteEl.value.trim() : '',
+        plataforma: platEl ? platEl.value : 'Mercado Libre',
+        tipoEnvio: envioEl ? envioEl.value : 'Mercado Envíos',
+        estado: 'Nuevo',
+        horaInicioPrep: '',
+        armadorDepo: '',
+        horaFinPrep: '',
+        facturadorAdmin: '',
+        observaciones: obsEl ? obsEl.value.trim() : ''
+      };
+
+      pedidos.unshift(nuevo);
+      guardarStorageLocal();
+      cerrarModal('modalNuevoPedido');
+      renderizarTablero();
+
+      if (idInput) idInput.value = '';
+      if (clienteEl) clienteEl.value = '';
+      if (obsEl) obsEl.value = '';
+
+      enviarAccionASheets({ action: 'crearPedido', pedido: nuevo }, () => {
+        bloqueadoPorAccion = false;
+      });
+    }
+
+    function confirmarInicioPreparacion(armador) {
+      const idVenta = pedidoSeleccionadoId;
+      if (!idVenta || bloqueadoPorAccion) return;
+      bloqueadoPorAccion = true;
+
+      const ahora = getFechaHoraActual();
+      cerrarModal('modalTomarDepo');
+
+      const p = pedidos.find(item => String(item.idVenta).trim() === String(idVenta).trim());
+      if (p) {
+        p.estado = 'En Preparación';
+        p.armadorDepo = armador;
+        p.horaInicioPrep = ahora;
+        guardarStorageLocal();
+        renderizarTablero();
+      }
+
+      enviarAccionASheets({ 
+        action: 'iniciarPreparacion', 
+        idVenta: idVenta, 
+        armador: armador 
+      }, () => {
+        bloqueadoPorAccion = false;
+      });
+    }
+
+    function finalizarPreparacion(idVenta) {
+      if (!idVenta || bloqueadoPorAccion) return;
+      bloqueadoPorAccion = true;
+
+      const ahora = getFechaHoraActual();
+      const p = pedidos.find(item => String(item.idVenta).trim() === String(idVenta).trim());
+      if (p) {
+        p.estado = 'Para Facturar';
+        p.horaFinPrep = ahora;
+        guardarStorageLocal();
+        renderizarTablero();
+      }
+
+      enviarAccionASheets({ 
+        action: 'finalizarPreparacion', 
+        idVenta: idVenta 
+      }, () => {
+        bloqueadoPorAccion = false;
+      });
+    }
+
+    function confirmarFacturacion(facturador) {
+      const idVenta = pedidoSeleccionadoId;
+      if (!idVenta || bloqueadoPorAccion) return;
+      bloqueadoPorAccion = true;
+
+      cerrarModal('modalFacturar');
+
+      registrarArchivadoReciente(idVenta);
+
+      pedidos = pedidos.filter(item => String(item.idVenta).trim() !== String(idVenta).trim());
+      guardarStorageLocal();
+      renderizarTablero();
+
+      enviarAccionASheets({ 
+        action: 'facturarArchivar', 
+        idVenta: idVenta, 
+        facturador: facturador 
+      }, () => {
+        bloqueadoPorAccion
+        facturador: facturador 
+      }, () => {
+        bloqueadoPorAccion = false;
+      });
+    }
+
+    window.abrirConfigAPI = abrirConfigAPI;
+    window.guardarConfigAPI = guardarConfigAPI;
+    window.cambiarEspacio = cambiarEspacio;
+    window.renderizarTablero = renderizarTablero;
+    window.abrirModalNuevoPedido = abrirModalNuevoPedido;
+    window.abrirModalTomarDepo = abrirModalTomarDepo;
+    window.abrirModalFacturar = abrirModalFacturar;
+    window.cerrarModal = cerrarModal;
+    window.guardarNuevoPedido = guardarNuevoPedido;
+    window.confirmarInicioPreparacion = confirmarInicioPreparacion;
+    window.finalizarPreparacion = finalizarPreparacion;
+    window.confirmarFacturacion = confirmarFacturacion;
+    window.recargarDatos = recargarDatos;
+    window.filtrarPorNroVenta = filtrarPorNroVenta;
+    window.limpiarBusqueda = limpiarBusqueda;
+
+    function inicializar() {
+      actualizarIndicadorConexion();
+      cambiarEspacio();
+      if (API_URL && API_URL.trim() !== "") {
+        recargarDatos();
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+      inicializar();
+    }
+  </script>
+</body>
+</html>
